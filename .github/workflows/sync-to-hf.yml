@@ -15,4 +15,4 @@ jobs:
       - name: Push to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push -f https://av0422:$HF_TOKEN@huggingface.co/spaces/av0422/robotic-arm-rl main
+        run: git push -f https://av0422:$HF_TOKEN@huggingface.co/spaces/avantikaajit/robotic-arm-rl main
