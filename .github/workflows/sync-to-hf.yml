@@ -8,11 +8,23 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+          git lfs track "*.zip"
+          git lfs track "*.mp4"
+          git lfs track "*.npz"
+          git lfs track "*.tfevents*"
+
       - name: Push to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push -f https://av0422:$HF_TOKEN@huggingface.co/spaces/avantikaajit/robotic-arm-rl main
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git push -f https://avantikaajit:$HF_TOKEN@huggingface.co/spaces/avantikaajit/robotic-arm-rl main
