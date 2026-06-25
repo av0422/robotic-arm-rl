@@ -9,22 +9,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          lfs: true
 
-      - name: Setup Git LFS
-        run: |
-          git lfs install
-          git lfs track "*.zip"
-          git lfs track "*.mp4"
-          git lfs track "*.npz"
-          git lfs track "*.tfevents*"
+      - name: Install HF CLI
+        run: pip install huggingface_hub
 
-      - name: Push to HF Space
+      - name: Upload to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git config user.email "action@github.com"
-          git config user.name "GitHub Action"
-          git push -f https://avantikaajit:$HF_TOKEN@huggingface.co/spaces/avantikaajit/robotic-arm-rl main
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo_id = "avantikaajit/robotic-arm-rl"
+
+          # Upload only the files HF Space needs
+          files = [
+              "app.py",
+              "Dockerfile",
+              "requirements.txt",
+              "README.md",
+              "training_curve.png",
+          ]
+
+          for f in files:
+              if os.path.exists(f):
+                  api.upload_file(
+                      path_or_fileobj=f,
+                      path_in_repo=f,
+                      repo_id=repo_id,
+                      repo_type="space",
+                  )
+                  print(f"✅ Uploaded {f}")
+
+          # Upload model (the one needed for the demo)
+          api.upload_file(
+              path_or_fileobj="models/reacher_trained.zip",
+              path_in_repo="models/reacher_trained.zip",
+              repo_id=repo_id,
+              repo_type="space",
+          )
+          print("✅ Uploaded models/reacher_trained.zip")
+          EOF
